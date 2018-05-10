@@ -41,7 +41,7 @@ UserScheema.statics.authenticate = (email, password, callback) => {
       else {
         bcrypt.compare(password, user.password, (err, result) => {
           if (err || !result) callback('Wrong user or password!', null);
-          else  callback(null, user);
+          else callback(null, user);
         });
       }
     })
