@@ -4,6 +4,7 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "acl": "^0.4.11",
     "bcrypt": "^2.0.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.2",

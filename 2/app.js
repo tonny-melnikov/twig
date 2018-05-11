@@ -2,6 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const flash = require('connect-flash');
 const bodyParser = require('body-parser');
+const node_acl = require('acl');
 const passport = require('passport');
 const mongoose = require('mongoose');
 const { twig }  = require( 'twig' );
@@ -82,5 +83,9 @@ mongoose.connection.once('open', () => {
   app.listen(PORT, (err) => {
     if(err) console.log(err);
     console.log(`Server listening on port ${PORT}...`);
+    // https://stackoverflow.com/a/38161484/7196144
+    acl = new acl(new acl.mongodbBackend(mongoose.connection.db, 'acl_'));
+    initACLPermissions();
+    initACLRoles();
   });
 }).on('error', err => console.log(err));
