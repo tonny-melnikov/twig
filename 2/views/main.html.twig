@@ -3,6 +3,18 @@
 {% block content %}
     <br><br>
     <h1 class="header center orange-text">This is great to use Twig!</h1>
+    {% if roles %}
+        <div class="card brown darken-1">
+            <div class="row">
+                <div class="col s12 m10">
+                    <div class="card-content white-text">
+                        <strong>User:</strong> {{ user ? user : 'undefined' }}</br>
+                        <strong>Role:</strong> {{ roles ? roles : 'undefined' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
     <div class="row center">
       <p>Welcome to main website page</p>
     </div>
