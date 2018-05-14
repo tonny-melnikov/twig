@@ -12,21 +12,4 @@ router.get('/', (req, res) => {
   });
 });
 
-router.get('/dashboard', requiresLogin, (req, res, next) => {
-    res.render('dashboard.html.twig');
-});
-
-
-function requiresLogin(req, res, next) {
-    console.log(req.session);
-    if (req.session && req.session.userId) {
-        return next();
-    } else {
-        const err = {};
-        err.message = 'You must log in to watch this page';
-        err.status = 401;
-        next(err);
-    }
-}
-
 module.exports = router;

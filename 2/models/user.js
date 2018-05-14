@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-// const async = require('async');
+const async = require('async');
 const bcrypt = require('bcrypt');
 const config = require('../config');
 
@@ -13,7 +13,7 @@ const userSchema = mongoose.Schema({
   // passwordResetExpires: Date,
   loginAttempts: { type: Number, required: true, default: 0 },
   lockUntil: Date,
-  role: String
+  role: { type: Number, default: '1' }
 });
 
 userSchema.pre('save', function(next) {
@@ -26,16 +26,25 @@ userSchema.pre('save', function(next) {
   bcrypt.hash(user.password, 10, (err, hash) => {
     if (err) return next(err);
     user.password = hash;
+    // save as Number
+    // user.role = parseInt(user.role, 10);
     console.log(user);
     next();
   });
 });
 
+// userSchema.post('find', function(result) {
+//   if(result) {
+//     console.log(`result.role: ${result.role}`);
+//     console.log(`result.role: ${result.role.toString()}`);
+//     result.role = result.role.toString();
+//     console.log('find() returned ' + JSON.stringify(result));;
+//   }
+// });
+
 userSchema.virtual('isLocked').get(function() {
 	return !!(this.lockUntil && this.lockUntil > Date.now());
 });
-
-
 
 userSchema.statics.authenticate = (email, password, callback) => {
   User.findOne({ email })
@@ -51,48 +60,48 @@ userSchema.statics.authenticate = (email, password, callback) => {
     .catch(err => callback(err, null))
 };
 
-userSchema.statics.comparePassword = function(candidatePassword, hash, callback) {
-    bcrypt.compare(candidatePassword, hash, callback);
-}
+// userSchema.methods.comparePassword = function(candidatePassword, hash, callback) {
+//     bcrypt.compare(candidatePassword, hash, callback);
+// }
 
 
-// userSchema.methods.comparePassword = function(passwordToCompare, callback) {
-// 	var user = this;
-//
-// 	async.waterfall([
-// 		function(waterfallCb) {
-// 			bcrypt.compare(passwordToCompare, user.password, function(err, isMatch) {
-// 				if (err) {
-// 					return waterfallCb(err);
-// 				}
-//
-// 				waterfallCb(null, isMatch);
-// 			});
-// 		},
-// 		function(isMatch, waterfallCb) {
-// 			if (bcrypt.getRounds(user.password) !== config.login.passwordHashRounds) {
-// 				user.password = passwordToCompare;
-//
-// 				user.save(function(err, user) {
-// 					if (err) {
-// 						return waterfallCb(err, isMatch);
-// 					}
-//
-// 					waterfallCb(null, isMatch);
-// 				});
-// 			}
-// 			else {
-// 				waterfallCb(null, isMatch);
-// 			}
-// 		}
-// 	], function(err, isMatch) {
-// 		if (err) {
-// 			return callback(err);
-// 		}
-//
-// 		callback(null, isMatch);
-// 	});
-// };
+userSchema.methods.comparePassword = function(passwordToCompare, callback) {
+	var user = this;
+
+	async.waterfall([
+		function(waterfallCb) {
+			bcrypt.compare(passwordToCompare, user.password, function(err, isMatch) {
+				if (err) {
+					return waterfallCb(err);
+				}
+
+				waterfallCb(null, isMatch);
+			});
+		},
+		function(isMatch, waterfallCb) {
+			if (bcrypt.getRounds(user.password) !== config.login.passwordHashRounds) {
+				user.password = passwordToCompare;
+
+				user.save(function(err, user) {
+					if (err) {
+						return waterfallCb(err, isMatch);
+					}
+
+					waterfallCb(null, isMatch);
+				});
+			}
+			else {
+				waterfallCb(null, isMatch);
+			}
+		}
+	], function(err, isMatch) {
+		if (err) {
+			return callback(err);
+		}
+
+		callback(null, isMatch);
+	});
+};
 
 userSchema.methods.incrementLoginAttempts = function(callback) {
 	var lockExpired = !!(this.lockUntil && this.lockUntil < Date.now());

@@ -30,7 +30,8 @@
     "nodemon": "^1.17.4"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js"
   },
   "keywords": [],
   "author": "",

@@ -14,11 +14,18 @@ passport.deserializeUser(function(id, done) {
 	});
 });
 
-passport.use(new LocalStrategy({ usernameField: 'email' }, function(email, password, done) {
-	User.findOne({ email: email }, function(err, user) {
+// passport.use(new LocalStrategy({ usernameField: 'email' },
+passport.use(new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password',
+  },
+	(email, password, done) => {
+		console.log(`email ${email}`);
+		console.log(`passowrd ${password}`)
+	User.findOne({ email }, function(err, user) {
 		if (!user) {
-      const msg = config.env === 'development' ? `No user with shuch email found ${email}` : 'Не верно указан email или пароль'
-			return done(null, false, { msg });
+      const msg = config.env === 'development' ? `No user with shuch email found ${email}` : config.messages.signFailed;
+			return done(null, false, msg);
 		}
 
 		// if (!user.isVerified) {
@@ -30,7 +37,7 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, function(email, passw
 				if (err) {
 					return done(err);
 				}
-        return done(null, false, { msg: `Число попыток входа в вашу учётную запись исчерпано. Чтобы избежать взлом и защитить вас, мы заморозили вход в вашу учётную запись до ${moment(user.lockUntil).tz(config.server.timezone).format('LT z')}. Мы заботимся о вашей безопасности. Спасибо за понимание!`});
+        return done(null, false, `Число попыток входа в вашу учётную запись исчерпано. Чтобы избежать взлом и защитить вас, мы заморозили вход в вашу учётную запись до ${moment(user.lockUntil).tz(config.server.timezone).format('LT z')}. Мы заботимся о вашей безопасности. Спасибо за понимание!`);
 			});
 		}
 
@@ -43,8 +50,8 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, function(email, passw
 					if (err) {
 						return done(err);
 					}
-
-					return done(null, false, { msg: 'Invalid password.  Please try again.' });
+					const msg = config.env === 'development' ? 'Invalid password.  Please try again.' : config.messages.signFailed
+					return done(null, false, msg);
 				});
 			}
 		});
@@ -56,6 +63,6 @@ exports.isAuthenticated = function(req, res, next) {
 		return next();
 	}
 
-	req.flash('info', { msg: "You must be logged in to visit that page." });
+	req.flash('info', config.messages.noSession);
 	res.redirect('/user/login');
 };

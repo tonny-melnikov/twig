@@ -6,7 +6,9 @@ const CryptoJS = require("crypto-js");
 const User = require('../models/user');
 
 exports.getUserId = function(req, res) {
+	console.log(`req.user: ${req.user}`);
 	if (typeof req.user !== 'undefined') {
+		console.log(`req.user.id: ${req.user.id}`);
 		return req.user.id;
 	}
 
@@ -58,8 +60,16 @@ exports.loginValidation = [
 		.exists().withMessage('Забыли указать email')
 		.isEmail().withMessage('Ошибка в указанном email'),
 	check('password')
-		.exists().withMessage('Забыли ввести пароль'),
+		.isLength({ min: config.login.minimumPasswordLength }).withMessage('Забыли ввести пароль'),
 ];
+
+exports.changePasswordValidation = [
+	check('password')
+		.isLength({ min: config.login.minimumPasswordLength }).withMessage('Забыли ввести пароль'),
+	check('passwordConf', 'Введённые пароли не совпадают')
+		.exists()
+		.custom((value, { req }) => value === req.body.password),
+]
 
 /*
 exports.sendEmail = function(to, from, subject, contents, callback) {
@@ -69,7 +79,7 @@ exports.sendEmail = function(to, from, subject, contents, callback) {
 			secure: true, // true for 465, false for other ports
 			auth: {
 					user: config.email.login,
-					pass: config.email.passowrd
+					pass: config.email.password
 			},
 			// tls: {
 			// 	rejectUnauthorized: false

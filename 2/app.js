@@ -24,12 +24,10 @@ const authentication = require('./authentication');
 app.use(helmet());
 
 // mongodb connection
+// sudo service mongod start (sudo systemctl start mongodb)
 mongoose.connect(config.db.uri)
   .catch((err) => {
     console.log(err);
-    console.log('===============');
-    console.log('Не стартануло mongodb!');
-    console.log('sudo service mongod start (sudo systemctl start mongodb)');
     process.exit(0);
   });
 mongoose.connection.once('open', () => {
@@ -76,7 +74,8 @@ app.use(flash());
 
 // pass properties to routes
 app.get('*', (req, res, next) => {
-    if (req.session && req.session.userId) res.locals.user = req.session.userId;
+  // console.log(req.session);
+    if (req.session && req.session.passport.user) res.locals.user = req.session.passport.user;
     if (req.flash) res.locals.messages = req.flash('info');
     next();
 });
@@ -90,10 +89,12 @@ app.get('/flash', (req, res) => {
 // the reason to put routes in separate function was the MongoStore initialization error
 function set_routes() {
   const main = require('./routes/index');
-  const users = require('./routes/users');
+  const users = require('./routes/user');
+  const admin = require('./routes/admin');
 
   app.use('/', main);
-  app.use('/users', users);
+  app.use('/user', users);
+  app.use('/admin', admin);
 
   // catch 404
   app.use(function(req, res, next) {

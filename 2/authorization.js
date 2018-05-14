@@ -11,22 +11,22 @@ module.exports = {
     // Inherit roles
     //  Every user is allowed to do what guests do
     //  Every admin is allowed to do what users do
-    acl.addRoleParents( 'user', 'guest' );
-    acl.addRoleParents( 'admin', 'user' );
+    acl.addRoleParents( '1', '0' );
+    acl.addRoleParents( '777', '1' );
 
     acl.allow([
       {
-        roles: 'admin',
+        roles: ['777'],
         allows: [
-          { resources: '/users', permissions: '*' }
+          { resources: '/admin/users', permissions: '*' }
         ]
       }, {
-        roles: 'user',
+        roles: ['1'],
         allows: [
-          { resources: '/dashboard', permissions: 'get' }
+          { resources: '/user/dashboard', permissions: 'get' }
         ]
       }, {
-        roles: 'guest',
+        roles: ['0'],
         allows: []
       }
     ]);

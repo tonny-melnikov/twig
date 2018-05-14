@@ -2,14 +2,18 @@ const User = require('../models/user');
 const { validationResult } = require('express-validator/check');
 const config = require('../config');
 const utility = require('../lib/utility');
+const passport = require('passport');
 
 exports.register = {
   get: (req, res, next) => {
     if (req.isAuthenticated()) {
-      req.flash('info', 'Вы уже вошли на сайт');
+      req.flash('info', config.messages.loginWaste);
       return res.redirect('/');
     }
-    res.render('register.html.twig', { minimumPasswordLength: config.login.minimumPasswordLength, csrf: req.csrfToken() });
+    res.render('register.html.twig', {
+      minimumPasswordLength: config.login.minimumPasswordLength,
+      csrf: req.csrfToken()
+    });
   },
   post: (req, res, next) => {
     const errors = validationResult(req);
@@ -24,10 +28,9 @@ exports.register = {
         };
       });
 
-
       // res.locals.oldBody = oldBody;
       // res.locals.validationErrors = errorsList;
-      // return res.redirect('/users/register');
+      // return res.redirect('/user/register');
       return res.status(422).render('register.html.twig', {
         oldBody,
         validationErrors: errorsList,
@@ -36,7 +39,6 @@ exports.register = {
     }
 
     const verificationToken = utility.createRandomToken();
-    const role = req.body.role ? req.body.role : 'user';
 
 		const user = new User({
       username: req.body.username,
@@ -44,7 +46,6 @@ exports.register = {
 			password: req.body.password,
 			verificationToken: verificationToken,
       passwordResetToken: verificationToken,
-			role,
 			isVerified: false,
 		});
 
@@ -54,32 +55,32 @@ exports.register = {
       if (existingUser) {
         return res.status(422).render('register.html.twig', {
           oldBody,
-          validationErrors: [{ key: null, message: 'Этот имя пользователя уже занято'}],
+          validationErrors: [{ key: null, message: config.messages.signNameBisy}],
           csrf: req.csrfToken()
         });
       }
 
       User.findOne({ email: req.body.email }, (err, existingUser2) => {
         if (existingUser2) {
-          req.flash('info', 'Вы уже регистрировались и можете войти');
-          res.redirect('/users/login');
+          req.flash('info', config.messages.signAlreadyDone);
+          res.redirect('/user/login');
         }
 
         user.save(function(err, newUser) {
   				if (err) {
   					console.log(err);
-  					req.flash('info', 'Технический сбой. Попробуйте зарегистрироваться снова');
+  					req.flash('info', config.messages.retry);
   					return res.redirect('/user/register');
   				}
 
-          acl.addUserRoles(newUser._id.toString(), role, function(err) {
+          acl.addUserRoles(newUser._id.toString(), '1', function(err) { // set role to 1
   					if (err) {
   						console.log(err);
-  						req.flash('errors', 'Серьёзная техническая ошибка. Обратитесь к администратору.');
+  						req.flash('info', config.messages.crit);
   						return res.redirect('/');
   					}
 
-            req.flash('info', 'Ваш аккаунт успешно создан. Теперь вы можете войти на сайт.');
+            req.flash('info', config.messages.signSuccess);
             res.redirect('/');
 
             //----------- email confirmation
@@ -133,7 +134,7 @@ exports.login = {
 			}
 
 			if (!user) {
-				req.flash('errors', info);
+				req.flash('info', info);
 				return res.redirect('/user/login');
 			}
 
@@ -147,3 +148,64 @@ exports.login = {
 		})(req, res, next);
   }
 };
+
+exports.logout = {
+  get: (req, res) => {
+    req.logout();
+    req.flash('info', config.messages.logout );
+    res.redirect('/');
+  }
+}
+
+exports.dashboard = {
+  get: (req, res) => {
+    res.render('dashboard.html.twig');
+  }
+}
+
+exports.changePassword = {
+  get: (req, res) => {
+    res.render('change-password.html.twig', {
+      csrf: req.csrfToken(),
+    });
+  },
+  post: (req, res, next) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      const validationErrors = errors.mapped();
+      const errorsList = Object.keys(validationErrors).map((key) => {
+        return {
+          key: key,
+          message: validationErrors[key].msg,
+        };
+      });
+
+      return res.status(422).render('change-password.html.twig', {
+        validationErrors: errorsList,
+        csrf: req.csrfToken()
+      });
+    }
+
+    User.findOne({ email: req.user.email }, function(err, user) {
+      if (err) {
+        console.log(err);
+        req.flash('info', config.messages.crit );
+        return res.redirect('back');
+      }
+
+      user.password = req.body.password;
+
+      user.save(function(err) {
+        if (err) {
+          console.log(err);
+          req.flash('info', config.messages.retry);
+          return res.redirect('back');
+        }
+
+        req.flash('info', config.messages.passwordChange);
+        res.redirect('/');
+      });
+    });
+  }
+}
