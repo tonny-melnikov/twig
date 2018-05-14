@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+    <br><br>
+    <h1 class="header center orange-text">Admin</h1>
+    <div class="row center">
+      <p>Here you can upgrade users to admins</p>
+    </div>
+    {% if users %}
+      <ul class="collection">
+        {% for user in users %}
+          <!-- <li class="collection-item"><pre></pre></li> -->
+          <li class="collection-item">
+            <div>{{ user.username }} ({{ user.email }})
+              {% if user.role == 1 %}
+                <a href="/admin/users/upgrade?id={{ user._id }}&to=777" class="secondary-content"><i class="material-icons">send</i></a>
+              {% else %}
+                <a href="/admin/users/upgrade?id={{ user._id }}&to=1" class="secondary-content"><i class="material-icons">face</i></a>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+{% endblock %}
