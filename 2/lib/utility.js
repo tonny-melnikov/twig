@@ -50,6 +50,18 @@ exports.regValidation = [
 		.custom((value, { req }) => value === req.body.password),
 ];
 
+exports.loginValidation = [
+	// check('username')
+	// 	.exists().withMessage('Имя пользователя не может быть пустым')
+	// 	.isAlphanumeric().withMessage('Имя пользователя может содержать только цифры и латинские буквы'),
+	check('email')
+		.exists().withMessage('Забыли указать email')
+		.isEmail().withMessage('Ошибка в указанном email'),
+	check('password')
+		.exists().withMessage('Забыли ввести пароль'),
+];
+
+/*
 exports.sendEmail = function(to, from, subject, contents, callback) {
 	let transporter = nodemailer.createTransport({
 			host: 'smtp.email.ua',
@@ -76,3 +88,4 @@ exports.sendEmail = function(to, from, subject, contents, callback) {
 	// send mail with defined transport object
 	transporter.sendMail(mailOptions, callback);
 };
+*/

@@ -6,10 +6,10 @@ const utility = require('../lib/utility');
 const authentication = require('../authentication');
 const acl = require('../authorization').getAcl();
 
-// router.get('/login', userController.login.get);
-// router.post('/login', userController.login.post);
 router.get('/register', userController.register.get);
 router.post('/register', utility.regValidation, userController.register.post);
+router.get('/login', userController.login.get);
+router.post('/login', utility.loginValidation, userController.login.post);
 // router.get('/verify/:verificationToken', userController.verify.get);
 // router.get('/verify-resend/:email?', userController.verifyResend.get);
 // router.post('/verify-resend', userController.verifyResend.post);

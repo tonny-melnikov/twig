@@ -21,12 +21,12 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, function(email, passw
 			return done(null, false, { msg });
 		}
 
-		if (!user.isVerified) {
-			return done(null, false, { msg: `Нужно подтвердить электронную почту. Подождите 5 минут, проверьте вашу почту повторно. Если письмо не пришло - нажмите сюда: <p><a href="/user/verify-resend/${email}" class="btn waves-effect white black-text"><i class="material-icons left">email</i>Re-send verification email</a></p>` });
-		}
+		// if (!user.isVerified) {
+		// 	return done(null, false, { msg: `Нужно подтвердить электронную почту. Подождите 5 минут, проверьте вашу почту повторно. Если письмо не пришло - нажмите сюда: <p><a href="/user/verify-resend/${email}" class="btn waves-effect white black-text"><i class="material-icons left">email</i>Re-send verification email</a></p>` });
+		// }
 
 		if (user.isLocked) {
-			return user.incrementLoginAttempts(function(err) {
+			return user.incrementLoginAttempts((err) => {
 				if (err) {
 					return done(err);
 				}
